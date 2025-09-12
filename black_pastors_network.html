@@ -97,6 +97,7 @@
     .card h2 {
       margin: 4px 0 12px;
       font-size: 1.25rem;
+      text-align: center; /* Center the Agenda title */
     }
     .agenda {
       list-style: none;
@@ -111,15 +112,43 @@
       padding: 10px 12px;
       box-shadow: 0 1px 4px rgba(0,0,0,.06);
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 2px;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 12px;
     }
-    .agenda li .title {
+    .time-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 54px;
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--brand);
+      color: #fff;
+      font-weight: 800;
+      font-size: .95rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,.12);
+    }
+    .agenda .title {
       font-weight: 700;
+      line-height: 1.2;
     }
-    .agenda li .time {
+    .agenda .subtitle {
       font-size: .95rem;
       color: var(--muted);
+    }
+    .speaker {
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .speaker img {
+      width:44px;
+      height:44px;
+      border-radius:10px;
+      object-fit:cover;
+      box-shadow: 0 1px 4px rgba(0,0,0,.12);
     }
 
     /* CTA buttons */
@@ -182,29 +211,51 @@
       <h2>Agenda</h2>
       <ul class="agenda">
         <li>
-          <div class="title">Begins</div>
-          <div class="time">10:00 AM</div>
+          <span class="time-badge">10am</span>
+          <div class="title">Song</div>
         </li>
-        <li><div class="title">Song</div></li>
-        <li><div class="title">Welcome</div></li>
         <li>
-          <div class="title">Sage Moment: Bishop Macklin</div>
+          <div class="title">Welcome</div>
+        </li>
+        <li>
+          <div class="speaker">
+            <img src="/assets/bishop_macklin.jpg" alt="Bishop Macklin">
+            <div>
+              <div class="title">Sage Moment: Bishop Macklin</div>
+              <div class="subtitle">Followed by Q&amp;A</div>
+            </div>
+          </div>
         </li>
         <li>
           <div class="title">Sage Q&amp;A</div>
         </li>
-        <li><div class="title">Workshops</div></li>
-        <li><div class="title">Lunch</div></li>
-        <li><div class="title">Network Introduction</div></li>
-        <li><div class="title">Prayer</div></li>
         <li>
-          <div class="title">Keynote Speaker: Dr. Charlie Dates</div>
+          <span class="time-badge">11am</span>
+          <div class="title">Workshops</div>
         </li>
-        <li><div class="title">Closing Prayer</div></li>
+        <li>
+          <span class="time-badge">12pm</span>
+          <div class="title">Lunch</div>
+        </li>
+        <li>
+          <div class="title">Network Introduction</div>
+        </li>
+        <li>
+          <div class="title">Prayer</div>
+        </li>
+        <li>
+          <span class="time-badge">1pm</span>
+          <div class="speaker">
+            <img src="/assets/charlie_dates.avif" alt="Dr. Charlie Dates">
+            <div class="title">Keynote Speaker: Dr. Charlie Dates</div>
+          </div>
+        </li>
+        <li>
+          <div class="title">Closing Prayer</div>
+        </li>
       </ul>
 
       <div class="cta">
-        <a class="btn" href="#agenda">Back to top</a>
         <a class="btn secondary" href="https://tbccities.fillout.com/org_survey" target="_blank" rel="noopener">Open Survey</a>
       </div>
     </section>
