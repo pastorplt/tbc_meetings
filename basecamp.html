@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Black Pastors Network</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/assets/favicon.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
+  <style>
+    :root{
+      --brand:#bf3426;
+      --brand-dark:#a22a1f;
+      --ink:#111;
+      --muted:#444;
+      --bg:#fff;
+      --card:#f7f7f7;
+    }
+    html, body { margin:0; padding:0; background:var(--bg); color:var(--ink); }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+    /* Simple top bar */
+    header {
+      background: var(--brand);
+      color:#fff;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15);
+    }
+    .nav {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 16px;
+      height: 60px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    .brand img {
+      height: 36px;
+      width: auto;
+      display: block;
+    }
+    nav a {
+      color:#fff;
+      text-decoration: none;
+      font-weight:700;
+      padding:8px 12px;
+      border-radius:8px;
+    }
+    nav a:hover { background: var(--brand-dark); }
+
+    /* Main hero */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 16px 80px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 2rem;
+      line-height: 1.3;
+    }
+    .subhead {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin: 6px 0 22px;
+    }
+
+    /* Agenda card */
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 18px;
+      text-align: left;
+      margin: 0 auto 22px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    }
+    .card h2 {
+      margin: 4px 0 12px;
+      font-size: 1.25rem;
+      text-align: center; /* Center the Agenda title */
+    }
+    .agenda {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+    .agenda li {
+      display: grid;
+      grid-template-columns: 84px 1fr; /* left time column + right content bubble */
+      align-items: center;
+      gap: 12px;
+    }
+    .time-cell {
+      display: flex;
+      justify-content: center;
+    }
+    .time-badge, .time-spacer {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 64px;
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: .95rem;
+    }
+    .time-badge {
+      background: var(--brand);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,.12);
+    }
+    .time-spacer {
+      background: transparent;
+      color: transparent;
+    }
+    .item-bubble {
+      background: #fff;
+      border-radius: 10px;
+      padding: 12px 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .item-bubble .title {
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .item-bubble .subtitle {
+      font-size: .95rem;
+      color: var(--muted);
+    }
+
+    .speaker {
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .speaker img {
+      width:72px;
+      height:72px;
+      border-radius:12px;
+      object-fit:cover;
+      box-shadow: 0 1px 4px rgba(0,0,0,.12);
+      flex: 0 0 auto;
+    }
+
+    /* CTA buttons */
+    .cta {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+    .btn {
+      display: inline-block;
+      border: 1px solid var(--brand);
+      background: var(--brand);
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 800;
+    }
+    .btn.secondary {
+      background: #fff;
+      color: var(--brand);
+    }
+    .btn:hover { filter: brightness(1.05); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <a class="brand" href="/" aria-label="TBC Home">
+        <img src="/assets/TBC_full_logo_white.png" alt="TBC logo">
+        <span>BaseCamp</span>
+      </a>
+      <nav>
+        <a href="https://tbccities.fillout.com/bps_survey?event=BPS2025" target="_blank" rel="noopener">Survey</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Welcome to BaseCamp!</h1>
+    <h2>Wednesday, Oct 1, 2025</h2>
+    <p class="subhead">We’re so glad you’re here!</p>
+
+    <section id="agenda" class="card">
+      <h2>Agenda</h2>
+      <ul class="agenda">
+        <li>
+          <div class="time-cell"><span class="time-badge">10am</span></div>
+          <div class="item-bubble"><div class="title">Song</div></div>
+        </li>
+        <li>
+          <div class="time-cell"><span class="time-spacer">—</span></div>
+          <div class="item-bubble"><div class="title">Welcome</div></div>
+        </li>
+        <li>
+          <div class="time-cell"><span class="time-spacer">—</span></div>
+          <div class="item-bubble">
+            <div class="speaker">
+              <img src="/assets/bishop_macklin.jpg" alt="Bishop Macklin">
+              <div>
+                <div class="title">Sage Moment: Bishop Macklin</div>
+                <div class="subtitle">Followed by Q&amp;A</div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="time-cell"><span class="time-badge">11am</span></div>
+          <div class="item-bubble"><div class="title">Workshops</div></div>
+        </li>
+        <li>
+          <div class="time-cell"><span class="time-badge">12pm</span></div>
+          <div class="item-bubble"><div class="title">Lunch</div></div>
+        </li>
+        <li>
+          <div class="time-cell"><span class="time-spacer">—</span></div>
+          <div class="item-bubble"><div class="title">Network Introduction</div></div>
+        </li>
+        <li>
+          <div class="time-cell"><span class="time-spacer">—</span></div>
+          <div class="item-bubble"><div class="title">Prayer</div></div>
+        </li>
+        <li>
+          <div class="time-cell"><span class="time-badge">1pm</span></div>
+          <div class="item-bubble">
+            <div class="speaker">
+              <img src="/assets/charlie_dates.jpg" alt="Dr. Charlie Dates">
+              <div class="title">Keynote Speaker: Dr. Charlie Dates</div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="time-cell"><span class="time-spacer">—</span></div>
+          <div class="item-bubble"><div class="title">Closing Prayer</div></div>
+        </li>
+      </ul>
+
+      <div class="cta">
+        <a class="btn secondary" href="https://tbccities.fillout.com/bps_survey?event=BPS2025" target="_blank" rel="noopener">Open Survey</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
