@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Black Pastors Network</title>
+  <title>BaseCamp</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="/assets/favicon.ico" type="image/x-icon" />
   <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon" />
@@ -84,6 +84,7 @@
       border-radius: 14px;
       padding: 18px;
       text-align: left;
+      max-width: 600px; /* Added max-width for better look with two buttons */
       margin: 0 auto 22px;
       box-shadow: 0 6px 18px rgba(0,0,0,.06);
     }
@@ -114,11 +115,11 @@
       align-items: center;
       justify-content: center;
       min-width: 64px;
-      height: 36px;
-      padding: 0 12px;
+      height: 32px; /* Slightly smaller height */
+      padding: 0 10px; /* Slightly smaller padding */
       border-radius: 999px;
       font-weight: 800;
-      font-size: .95rem;
+      font-size: .85rem; /* Smaller font size for time */
     }
     .time-badge {
       background: var(--brand);
@@ -132,16 +133,54 @@
     .item-bubble {
       background: #fff;
       border-radius: 10px;
-      padding: 12px 14px;
+      padding: 14px 16px; /* Slightly bigger padding */
       box-shadow: 0 1px 4px rgba(0,0,0,.06);
     }
     .item-bubble .title {
       font-weight: 700;
       line-height: 1.2;
+      font-size: 1.1rem; /* Bigger font size for detail */
     }
     .item-bubble .subtitle {
       font-size: .95rem;
       color: var(--muted);
+    }
+    
+    /* Buttons */
+    .cta {
+      margin-top: 24px;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      line-height: 1.2;
+      transition: background 0.2s;
+      min-width: 100px;
+    }
+    .btn.primary {
+      background: var(--brand);
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,.15);
+    }
+    .btn.primary:hover {
+      background: var(--brand-dark);
+    }
+    .btn.secondary {
+      background: #fff;
+      color: var(--brand);
+      border: 1px solid var(--brand);
+      box-shadow: 0 2px 6px rgba(0,0,0,.08);
+    }
+    .btn.secondary:hover {
+      background: var(--brand);
+      color: #fff;
     }
   </style>
 </head>
@@ -153,7 +192,8 @@
         <span>BaseCamp</span>
       </a>
       <nav>
-        <a href="https://tbccities.fillout.com/bps_survey?event=BPS2025" target="_blank" rel="noopener">Survey</a>
+        <a href="https://tbccities.fillout.com/basecamp" target="_blank" rel="noopener">Survey</a>
+        <a href="https://app.tbc.city/" target="_blank" rel="noopener">App</a>
       </nav>
     </div>
   </header>
@@ -205,7 +245,8 @@
       </ul>
 
       <div class="cta">
-        <a class="btn secondary" href="https://tbccities.fillout.com/bps_survey?event=BPS2025" target="_blank" rel="noopener">Open Survey</a>
+        <a class="btn secondary" href="https://tbccities.fillout.com/basecamp" target="_blank" rel="noopener">Survey</a>
+        <a class="btn primary" href="https://app.tbc.city/" target="_blank" rel="noopener">App</a>
       </div>
     </section>
   </main>
