@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TBC • Raffle Spinner</title>
+  <link rel="icon" href="/assets/favicon.ico" type="image/x-icon" />
+  <style>
+    :root{
+      --brand:#bf3426;
+      --brand-dark:#a22a1f;
+      --ink:#111;
+      --muted:#444;
+      --bg:#fff;
+      --card:#f7f7f7;
+      --accent:#0ea5e9;
+      --win:#16a34a;
+    }
+    html, body { margin:0; padding:0; background:var(--bg); color:var(--ink); }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+    /* Top bar styled like your BaseCamp page */
+    header {
+      background: var(--brand);
+      color:#fff;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15);
+    }
+    .nav {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 16px;
+      height: 60px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    .brand img {
+      height: 36px;
+      width: auto;
+      display: block;
+    }
+    nav a {
+      color:#fff;
+      text-decoration: none;
+      font-weight:700;
+      padding:8px 12px;
+      border-radius:8px;
+    }
+    nav a:hover { background: var(--brand-dark); }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 16px 60px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      line-height: 1.3;
+    }
+    .subhead {
+      font-size: 1rem;
+      color: var(--muted);
+      margin: 6px 0 18px;
+    }
+
+    .grid {
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px){
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    }
+    .card h2 {
+      margin: 4px 0 12px;
+      font-size: 1.2rem;
+    }
+
+    /* Controls */
+    .controls {
+      display: grid;
+      gap: 10px;
+    }
+    label { font-weight:700; font-size:.95rem; }
+    input[type="url"], textarea {
+      width:100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font: inherit;
+      background:#fff;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+
+    .row { display:flex; gap:8px; flex-wrap:wrap; }
+    .btn {
+      display:inline-flex; align-items:center; justify-content:center;
+      padding: 12px 16px; border-radius:10px; font-weight:800;
+      border:1px solid transparent; cursor:pointer; user-select:none;
+      transition: transform .04s ease, background .2s ease, border-color .2s ease;
+    }
+    .btn:active { transform: translateY(1px) scale(.99); }
+    .btn.primary { background:var(--brand); color:#fff; box-shadow: 0 4px 10px rgba(0,0,0,.12); }
+    .btn.primary:hover { background:var(--brand-dark); }
+    .btn.secondary { background:#fff; color:var(--brand); border-color:var(--brand); }
+    .btn.ghost { background:#fff; color:#111; border-color:#ddd; }
+
+    .note { color:var(--muted); font-size:.9rem; }
+    .list {
+      background:#fff; border:1px solid #eee; border-radius:10px; padding:8px; max-height:300px; overflow:auto;
+    }
+    .list .pill {
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:6px 10px; border-radius:999px; background:#f2f2f2; margin:4px; font-weight:700; font-size:.92rem;
+    }
+
+    /* Spinner canvas wrapper */
+    .stage {
+      background:#fff;
+      border-radius: 14px;
+      box-shadow: inset 0 0 0 1px #eee;
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      max-width: 620px;
+      margin: 0 auto;
+      position: relative;
+    }
+    canvas { width:100%; height:100%; display:block; }
+
+    /* Pointer */
+    .pointer {
+      position:absolute; left:50%; top:-10px; transform:translateX(-50%);
+      width:0; height:0; border-left: 16px solid transparent;
+      border-right: 16px solid transparent; border-bottom: 26px solid var(--accent);
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.15));
+    }
+
+    /* Winner banner */
+    .winner {
+      margin-top: 14px;
+      display: none;
+      background: #e8fbe9;
+      border: 1px solid #c6f0c9;
+      color: #064e0a;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+    .winner.show { display:block; }
+
+    .legend { font-size:.9rem; color:var(--muted); }
+    .muted { color:var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <a class="brand" href="#" aria-label="TBC Home">
+        <img src="/assets/TBC_full_logo_white.png" alt="TBC logo" onerror="this.style.display='none'">
+        <span>Raffle Spinner</span>
+      </a>
+      <nav>
+        <a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'})">Top</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1>Raffle Spinner</h1>
+    <p class="subhead">Paste a Google Sheets <strong>CSV publish</strong> link, load names, and press <em>Spin</em>.</p>
+
+    <div class="grid">
+      <!-- Left: Spinner -->
+      <section class="card">
+        <h2>Wheel</h2>
+        <div class="stage">
+          <div class="pointer" aria-hidden="true"></div>
+          <canvas id="wheel" width="1000" height="1000"></canvas>
+        </div>
+        <div class="row" style="margin-top:12px; gap:10px;">
+          <button id="spinBtn" class="btn primary">🎡 Spin</button>
+          <button id="removeBtn" class="btn secondary" title="Remove winner from list after spin">Remove winner</button>
+          <button id="resetBtn" class="btn ghost" title="Reset rotation and clear winner">Reset</button>
+        </div>
+        <div id="winner" class="winner" role="status" aria-live="polite"></div>
+        <p class="legend muted" style="margin-top:8px;">Tip: The pointer at the top marks the winner. The wheel eases to a stop and highlights the segment.</p>
+      </section>
+
+      <!-- Right: Data -->
+      <section class="card">
+        <h2>Names</h2>
+        <div class="controls">
+          <div>
+            <label for="csvUrl">Google Sheets CSV URL</label>
+            <input id="csvUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/…/export?format=csv&gid=0" />
+            <div class="note">In Google Sheets: <em>File → Share → Publish to web</em>, choose the tab, format <strong>CSV</strong>, copy the link.</div>
+          </div>
+          <div class="row">
+            <button id="loadCsvBtn" class="btn secondary">Load from CSV</button>
+            <button id="useTextareaBtn" class="btn ghost" title="Use names you type below">Use typed names</button>
+          </div>
+          <div>
+            <label for="manualNames">Or type names (one per line)</label>
+            <textarea id="manualNames" placeholder="Ada Lovelace
+Grace Hopper
+Katherine Johnson
+Alan Turing"></textarea>
+          </div>
+          <div class="list" id="nameList" aria-live="polite"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // ---------- Helpers ----------
+    const $ = sel => document.querySelector(sel);
+    const wheel = $("#wheel");
+    const ctx = wheel.getContext("2d");
+    const DPR = Math.max(1, window.devicePixelRatio || 1); // hi-dpi crispness
+
+    // Scale backing store for DPR
+    function resizeCanvas() {
+      const { width, height } = wheel.getBoundingClientRect();
+      wheel.width = Math.round(width * DPR);
+      wheel.height = Math.round(height * DPR);
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // draw in CSS pixels
+      drawWheel();
+    }
+    new ResizeObserver(resizeCanvas).observe(wheel);
+
+    // State
+    const state = {
+      names: [],
+      rotation: 0,  // radians
+      spinning: false,
+      winnerIndex: null,
+    };
+
+    // ---------- Data loading ----------
+    async function fetchCsv(url) {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error("Failed to fetch CSV: " + res.status);
+      return await res.text();
+    }
+    function parseNamesFromCsv(csvText) {
+      // Expect one name per row in first column. Skip header-like first cell "Name".
+      const lines = csvText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const names = [];
+      for (const line of lines) {
+        // naive first-column parse (avoid commas-in-name by recommending no commas)
+        const cell = line.split(",")[0].trim();
+        if (!cell) continue;
+        if (/^name(s)?$/i.test(cell)) continue; // skip header
+        names.push(cell);
+      }
+      return dedupe(names);
+    }
+    function parseNamesFromTextarea() {
+      const raw = $("#manualNames").value || "";
+      const names = raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      return dedupe(names);
+    }
+    function dedupe(arr){ return Array.from(new Set(arr)); }
+
+    function setNames(arr) {
+      state.names = arr.slice();
+      state.winnerIndex = null;
+      state.rotation = 0;
+      renderNameList();
+      drawWheel();
+      $("#winner").classList.remove("show");
+      $("#winner").textContent = "";
+    }
+    function renderNameList(){
+      const box = $("#nameList");
+      if (!state.names.length) { box.innerHTML = '<span class="muted">No names loaded yet.</span>'; return; }
+      box.innerHTML = state.names.map(n => `<span class="pill">${escapeHtml(n)}</span>`).join("");
+    }
+    function escapeHtml(s){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+    // ---------- Wheel drawing ----------
+    function drawWheel() {
+      const names = state.names.length ? state.names : ["Add names"];
+      const N = names.length;
+      const { width, height } = wheel.getBoundingClientRect();
+      const size = Math.min(width, height);
+      ctx.clearRect(0, 0, width, height);
+      const cx = width / 2;
+      const cy = height / 2;
+      const rOuter = size/2 - 8;
+      const rInner = 50;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(state.rotation);
+
+      const arc = (Math.PI * 2) / N;
+      for (let i=0; i<N; i++){
+        const start = i * arc;
+        const end = start + arc;
+        // Slice fill
+        ctx.beginPath();
+        ctx.moveTo(0,0);
+        ctx.arc(0,0, rOuter, start, end, false);
+        ctx.closePath();
+        ctx.fillStyle = sliceColor(i, N);
+        ctx.fill();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(0,0,0,.06)";
+        ctx.stroke();
+
+        // Highlight winner slice
+        if (state.winnerIndex === i){
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(0,0);
+          ctx.arc(0,0, rOuter, start, end, false);
+          ctx.closePath();
+          ctx.lineWidth = 6;
+          ctx.strokeStyle = "rgba(22,163,74,.9)";
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Slice text
+        const label = names[i];
+        ctx.save();
+        const mid = start + arc/2;
+        ctx.rotate(mid);
+        ctx.textAlign = "right";
+        const baseSize = 18;
+        const shrink = Math.max(0, Math.log2(N) - 1); // mild shrink with more slices
+        const fontSize = Math.max(10, baseSize - shrink * 3);
+        ctx.font = `bold ${fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`;
+        ctx.fillStyle = "#111";
+        // Position text slightly inset from outer edge
+        ctx.translate(0, 0);
+        ctx.rotate(Math.PI/2); // upright
+        const textRadius = rOuter - 12;
+        multilineArcText(ctx, label, textRadius, arc*0.9);
+        ctx.restore();
+      }
+
+      // Hub
+      ctx.beginPath();
+      ctx.arc(0,0, rInner, 0, Math.PI*2);
+      ctx.fillStyle = "#fff";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#ddd";
+      ctx.stroke();
+
+      // Hub dot
+      ctx.beginPath();
+      ctx.arc(0,0, 6, 0, Math.PI*2);
+      ctx.fillStyle = "#999";
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function sliceColor(i, n){
+      // pleasant even spread of hues
+      const hue = (360 * i / n) % 360;
+      const sat = 70;
+      const light = 62;
+      return `hsl(${hue} ${sat}% ${light}%)`;
+    }
+
+    function multilineArcText(ctx, text, radius, maxArcWidth){
+      // Split long names into small chunks if needed
+      const words = String(text).split(/\s+/);
+      const lines = [];
+      let line = "";
+      for (const w of words){
+        const tryLine = line ? (line + " " + w) : w;
+        if (ctx.measureText(tryLine).width < radius * maxArcWidth * .6) {
+          line = tryLine;
+        } else {
+          if (line) lines.push(line);
+          line = w;
+        }
+      }
+      if (line) lines.push(line);
+      const total = lines.length;
+      const step = 14; // px
+      const startOffset = -((total-1)/2)*step;
+      for (let i=0; i<total; i++){
+        ctx.save();
+        ctx.translate(0,0);
+        ctx.fillText(lines[i], radius, startOffset + i*step);
+        ctx.restore();
+      }
+    }
+
+    // ---------- Spin logic ----------
+    function spin(){
+      if (state.spinning || state.names.length < 2) return;
+      state.spinning = true;
+      $("#spinBtn").disabled = true;
+      $("#removeBtn").disabled = true;
+      $("#winner").classList.remove("show");
+      $("#winner").textContent = "";
+
+      const N = state.names.length;
+      const arc = (Math.PI * 2) / N;
+      const targetIndex = Math.floor(Math.random() * N);
+
+      // Rotation that lands targetIndex at pointer angle (-90°)
+      const pointerAngle = -Math.PI/2;
+      const targetCenter = targetIndex * arc + arc/2;
+      let base = pointerAngle - targetCenter; // align center under pointer
+      // Ensure we spin forward at least 5–8 turns
+      const spins = 5 + Math.floor(Math.random()*4); // 5..8
+      let end = base + spins * Math.PI * 2;
+
+      // Ensure end is > current rotation to avoid reverse jump
+      while (end <= state.rotation + Math.PI*2) end += Math.PI*2;
+
+      const start = state.rotation;
+      const duration = 4500; // ms
+      const t0 = performance.now();
+
+      function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+      function frame(now){
+        const t = Math.min(1, (now - t0)/duration);
+        const eased = easeOutCubic(t);
+        state.rotation = start + (end - start) * eased;
+        drawWheel();
+        if (t < 1){
+          requestAnimationFrame(frame);
+        } else {
+          // Normalize rotation and fix minor drift
+          state.rotation = end;
+          state.winnerIndex = targetIndex;
+          drawWheel();
+          announceWinner();
+          $("#spinBtn").disabled = false;
+          $("#removeBtn").disabled = false;
+          state.spinning = false;
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function announceWinner(){
+      const name = state.names[state.winnerIndex];
+      const box = $("#winner");
+      box.innerHTML = `🎉 Winner: <strong>${escapeHtml(name)}</strong>`;
+      box.classList.add("show");
+    }
+
+    function removeWinner(){
+      if (state.spinning || state.winnerIndex == null) return;
+      state.names.splice(state.winnerIndex, 1);
+      state.winnerIndex = null;
+      state.rotation = 0;
+      renderNameList();
+      drawWheel();
+      $("#winner").classList.remove("show");
+      $("#winner").textContent = "";
+    }
+
+    function resetWheel(){
+      if (state.spinning) return;
+      state.rotation = 0;
+      state.winnerIndex = null;
+      drawWheel();
+      $("#winner").classList.remove("show");
+      $("#winner").textContent = "";
+    }
+
+    // ---------- Events ----------
+    $("#loadCsvBtn").addEventListener("click", async () => {
+      const url = $("#csvUrl").value.trim();
+      if (!url) return alert("Paste a Google Sheets CSV publish URL first.");
+      try{
+        const csv = await fetchCsv(url);
+        const names = parseNamesFromCsv(csv);
+        if (!names.length) throw new Error("No names found in first column.");
+        setNames(names);
+      }catch(err){
+        console.error(err);
+        alert("Couldn't load names. Make sure the sheet is published to the web as CSV and try again.");
+      }
+    });
+    $("#useTextareaBtn").addEventListener("click", () => {
+      const names = parseNamesFromTextarea();
+      if (!names.length) return alert("Type one name per line first.");
+      setNames(names);
+    });
+    $("#spinBtn").addEventListener("click", spin);
+    $("#removeBtn").addEventListener("click", removeWinner);
+    $("#resetBtn").addEventListener("click", resetWheel);
+
+    // Seed with textarea demo names initially
+    setNames(parseNamesFromTextarea());
+  </script>
+</body>
+</html>
