@@ -81,6 +81,9 @@
       grid-template-columns: 1.1fr .9fr;
       gap: 16px;
     }
+    .grid.full-width {
+      grid-template-columns: 1fr;
+    }
     @media (max-width: 900px){
       .grid { grid-template-columns: 1fr; }
     }
@@ -138,6 +141,9 @@
       margin: 0 auto;
       position: relative;
       overflow: hidden;
+    }
+    .grid.full-width .stage {
+      max-width: 90vmin;
     }
     canvas { width:100%; height:100%; display:block; }
 
@@ -294,7 +300,10 @@ Alan Turing"></textarea>
       drawWheel();
       $("#winner").classList.remove("show");
       $("#winner").textContent = "";
-      if (hidePanel) $("#namesCard").classList.add("hidden");
+      if (hidePanel) {
+        $("#namesCard").classList.add("hidden");
+        $(".grid").classList.add("full-width");
+      }
     }
     function renderNameList(){
       const box = $("#nameList");
@@ -355,22 +364,25 @@ Alan Turing"></textarea>
         // Slice label
         const label = names[i];
         const mid = start + arc/2;
-        const tx = Math.cos(mid) * (rOuter - 18);
-        const ty = Math.sin(mid) * (rOuter - 18);
+        const tx = Math.cos(mid) * (rOuter * 0.65);
+        const ty = Math.sin(mid) * (rOuter * 0.65);
 
         const baseSize = 18;
         const shrink = Math.max(0, Math.log2(N) - 1);
         const fontSize = Math.max(10, baseSize - shrink * 3);
 
         ctx.save();
+        ctx.translate(tx, ty);
+        ctx.rotate(mid + Math.PI/2);
+        
         ctx.font = `bold ${fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`;
         ctx.fillStyle = "#111";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
-        const maxWidth = rOuter * Math.sin(arc/2) * 1.8;
+        const maxWidth = (rOuter - rInner) * 0.8;
         const fitted = fitText(ctx, label, maxWidth);
-        ctx.fillText(fitted, tx, ty);
+        ctx.fillText(fitted, 0, 0);
         ctx.restore();
       }
 
@@ -564,6 +576,7 @@ Alan Turing"></textarea>
 
     $("#toggleControlsBtn").addEventListener("click", () => {
       $("#namesCard").classList.toggle("hidden");
+      $(".grid").classList.toggle("full-width");
     });
 
     // initial seed & sizing
