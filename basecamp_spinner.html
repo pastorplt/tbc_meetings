@@ -301,7 +301,10 @@ Alan Turing"></textarea>
       if (!state.names.length) { box.innerHTML = '<span class="muted">No names loaded yet.</span>'; return; }
       box.innerHTML = state.names.map(n => `<span class="pill">${escapeHtml(n)}</span>`).join("");
     }
-    function escapeHtml(s){ return s.replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[m])); }
+    function escapeHtml(s){ 
+      return s.replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[m]));
+                                          }
+    }
 
     // ---------- Wheel drawing ----------
     function drawWheel() {
