@@ -456,7 +456,8 @@ Alan Turing"></textarea>
         if (t < 1){
           requestAnimationFrame(frame);
         } else {
-          state.rotation = end;
+          // Normalize rotation to 0-2π range for consistent subsequent spins
+          state.rotation = end % (Math.PI * 2);
           state.winnerIndex = targetIndex;
           drawWheel();
           announceWinner();
