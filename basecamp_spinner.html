@@ -443,14 +443,14 @@ Alan Turing"></textarea>
       while (end <= state.rotation + Math.PI*2) end += Math.PI*2;
 
       const start = state.rotation;
-      const duration = 4500;
+      const duration = 5000;
       const t0 = performance.now();
 
-      function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+      function easeOutQuart(t){ return 1 - Math.pow(1 - t, 4); }
 
       function frame(now){
         const t = Math.min(1, (now - t0)/duration);
-        const eased = easeOutCubic(t);
+        const eased = easeOutQuart(t);
         state.rotation = start + (end - start) * eased;
         drawWheel();
         if (t < 1){
