@@ -19,7 +19,6 @@
     html, body { margin:0; padding:0; background:var(--bg); color:var(--ink); }
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
 
-    /* Top bar styled like your BaseCamp page */
     header {
       background: var(--brand);
       color:#fff;
@@ -92,16 +91,10 @@
       padding: 18px;
       box-shadow: 0 6px 18px rgba(0,0,0,.06);
     }
-    .card h2 {
-      margin: 4px 0 12px;
-      font-size: 1.2rem;
-    }
+    .card h2 { margin: 4px 0 12px; font-size: 1.2rem; }
+    .hidden { display:none !important; }
 
-    /* Controls */
-    .controls {
-      display: grid;
-      gap: 10px;
-    }
+    .controls { display: grid; gap: 10px; }
     label { font-weight:700; font-size:.95rem; }
     input[type="url"], textarea {
       width:100%;
@@ -135,7 +128,6 @@
       padding:6px 10px; border-radius:999px; background:#f2f2f2; margin:4px; font-weight:700; font-size:.92rem;
     }
 
-    /* Spinner canvas wrapper */
     .stage {
       background:#fff;
       border-radius: 14px;
@@ -145,18 +137,20 @@
       max-width: 620px;
       margin: 0 auto;
       position: relative;
+      overflow: hidden;
     }
     canvas { width:100%; height:100%; display:block; }
 
-    /* Pointer */
     .pointer {
       position:absolute; left:50%; top:-10px; transform:translateX(-50%);
       width:0; height:0; border-left: 16px solid transparent;
       border-right: 16px solid transparent; border-bottom: 26px solid var(--accent);
       filter: drop-shadow(0 2px 4px rgba(0,0,0,.15));
+      z-index: 2;
     }
 
-    /* Winner banner */
+    #confetti { position:absolute; inset:0; pointer-events:none; z-index:1; }
+
     .winner {
       margin-top: 14px;
       display: none;
@@ -195,21 +189,23 @@
       <!-- Left: Spinner -->
       <section class="card">
         <h2>Wheel</h2>
-        <div class="stage">
+        <div class="stage" id="stage">
           <div class="pointer" aria-hidden="true"></div>
           <canvas id="wheel" width="1000" height="1000"></canvas>
+          <canvas id="confetti" width="1000" height="1000"></canvas>
         </div>
         <div class="row" style="margin-top:12px; gap:10px;">
           <button id="spinBtn" class="btn primary">🎡 Spin</button>
           <button id="removeBtn" class="btn secondary" title="Remove winner from list after spin">Remove winner</button>
           <button id="resetBtn" class="btn ghost" title="Reset rotation and clear winner">Reset</button>
+          <button id="toggleControlsBtn" class="btn ghost" title="Show/hide the names panel">Edit Names</button>
         </div>
         <div id="winner" class="winner" role="status" aria-live="polite"></div>
         <p class="legend muted" style="margin-top:8px;">Tip: The pointer at the top marks the winner. The wheel eases to a stop and highlights the segment.</p>
       </section>
 
       <!-- Right: Data -->
-      <section class="card">
+      <section class="card" id="namesCard">
         <h2>Names</h2>
         <div class="controls">
           <div>
@@ -239,22 +235,29 @@ Alan Turing"></textarea>
     const $ = sel => document.querySelector(sel);
     const wheel = $("#wheel");
     const ctx = wheel.getContext("2d");
-    const DPR = Math.max(1, window.devicePixelRatio || 1); // hi-dpi crispness
+    const DPR = Math.max(1, window.devicePixelRatio || 1);
 
-    // Scale backing store for DPR
+    // Confetti
+    const confetti = $("#confetti");
+    const cctx = confetti.getContext("2d");
+    let confettiAnim = null;
+
     function resizeCanvas() {
-      const { width, height } = wheel.getBoundingClientRect();
-      wheel.width = Math.round(width * DPR);
-      wheel.height = Math.round(height * DPR);
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // draw in CSS pixels
+      const rect = wheel.getBoundingClientRect();
+      const W = Math.round(rect.width * DPR);
+      const H = Math.round(rect.height * DPR);
+      wheel.width = W; wheel.height = H;
+      confetti.width = W; confetti.height = H;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      cctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       drawWheel();
     }
-    new ResizeObserver(resizeCanvas).observe(wheel);
+    new ResizeObserver(resizeCanvas).observe($("#stage"));
 
     // State
     const state = {
       names: [],
-      rotation: 0,  // radians
+      rotation: 0,
       spinning: false,
       winnerIndex: null,
     };
@@ -266,26 +269,24 @@ Alan Turing"></textarea>
       return await res.text();
     }
     function parseNamesFromCsv(csvText) {
-      // Expect one name per row in first column. Skip header-like first cell "Name".
-      const lines = csvText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const lines = csvText.split(/\\r?\\n/).map(l => l.trim()).filter(Boolean);
       const names = [];
       for (const line of lines) {
-        // naive first-column parse (avoid commas-in-name by recommending no commas)
         const cell = line.split(",")[0].trim();
         if (!cell) continue;
-        if (/^name(s)?$/i.test(cell)) continue; // skip header
+        if (/^name(s)?$/i.test(cell)) continue;
         names.push(cell);
       }
       return dedupe(names);
     }
     function parseNamesFromTextarea() {
       const raw = $("#manualNames").value || "";
-      const names = raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const names = raw.split(/\\r?\\n/).map(s => s.trim()).filter(Boolean);
       return dedupe(names);
     }
     function dedupe(arr){ return Array.from(new Set(arr)); }
 
-    function setNames(arr) {
+    function setNames(arr, {hidePanel = false} = {}) {
       state.names = arr.slice();
       state.winnerIndex = null;
       state.rotation = 0;
@@ -293,23 +294,26 @@ Alan Turing"></textarea>
       drawWheel();
       $("#winner").classList.remove("show");
       $("#winner").textContent = "";
+      if (hidePanel) $("#namesCard").classList.add("hidden");
     }
     function renderNameList(){
       const box = $("#nameList");
       if (!state.names.length) { box.innerHTML = '<span class="muted">No names loaded yet.</span>'; return; }
       box.innerHTML = state.names.map(n => `<span class="pill">${escapeHtml(n)}</span>`).join("");
     }
-    function escapeHtml(s){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    function escapeHtml(s){ return s.replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[m])); }
 
     // ---------- Wheel drawing ----------
     function drawWheel() {
       const names = state.names.length ? state.names : ["Add names"];
       const N = names.length;
-      const { width, height } = wheel.getBoundingClientRect();
-      const size = Math.min(width, height);
+      const rect = wheel.getBoundingClientRect();
+      const width = rect.width, height = rect.height;
       ctx.clearRect(0, 0, width, height);
+
       const cx = width / 2;
       const cy = height / 2;
+      const size = Math.min(width, height);
       const rOuter = size/2 - 8;
       const rInner = 50;
 
@@ -321,6 +325,7 @@ Alan Turing"></textarea>
       for (let i=0; i<N; i++){
         const start = i * arc;
         const end = start + arc;
+
         // Slice fill
         ctx.beginPath();
         ctx.moveTo(0,0);
@@ -345,22 +350,25 @@ Alan Turing"></textarea>
           ctx.restore();
         }
 
-        // Slice text
+        // ---- Slice label ----
         const label = names[i];
-        ctx.save();
         const mid = start + arc/2;
-        ctx.rotate(mid);
-        ctx.textAlign = "right";
+        const tx = Math.cos(mid) * (rOuter - 18);
+        const ty = Math.sin(mid) * (rOuter - 18);
+
         const baseSize = 18;
-        const shrink = Math.max(0, Math.log2(N) - 1); // mild shrink with more slices
+        const shrink = Math.max(0, Math.log2(N) - 1);
         const fontSize = Math.max(10, baseSize - shrink * 3);
+
+        ctx.save();
         ctx.font = `bold ${fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`;
         ctx.fillStyle = "#111";
-        // Position text slightly inset from outer edge
-        ctx.translate(0, 0);
-        ctx.rotate(Math.PI/2); // upright
-        const textRadius = rOuter - 12;
-        multilineArcText(ctx, label, textRadius, arc*0.9);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        const maxWidth = rOuter * Math.sin(arc/2) * 1.8;
+        const fitted = fitText(ctx, label, maxWidth);
+        ctx.fillText(fitted, tx, ty);
         ctx.restore();
       }
 
@@ -383,37 +391,20 @@ Alan Turing"></textarea>
     }
 
     function sliceColor(i, n){
-      // pleasant even spread of hues
       const hue = (360 * i / n) % 360;
       const sat = 70;
       const light = 62;
       return `hsl(${hue} ${sat}% ${light}%)`;
     }
 
-    function multilineArcText(ctx, text, radius, maxArcWidth){
-      // Split long names into small chunks if needed
-      const words = String(text).split(/\s+/);
-      const lines = [];
-      let line = "";
-      for (const w of words){
-        const tryLine = line ? (line + " " + w) : w;
-        if (ctx.measureText(tryLine).width < radius * maxArcWidth * .6) {
-          line = tryLine;
-        } else {
-          if (line) lines.push(line);
-          line = w;
-        }
+    function fitText(ctx, text, maxWidth){
+      let str = String(text);
+      if (ctx.measureText(str).width <= maxWidth) return str;
+      const ell = "…";
+      while (str.length > 0 && ctx.measureText(str + ell).width > maxWidth){
+        str = str.slice(0, -1);
       }
-      if (line) lines.push(line);
-      const total = lines.length;
-      const step = 14; // px
-      const startOffset = -((total-1)/2)*step;
-      for (let i=0; i<total; i++){
-        ctx.save();
-        ctx.translate(0,0);
-        ctx.fillText(lines[i], radius, startOffset + i*step);
-        ctx.restore();
-      }
+      return str ? (str + ell) : text;
     }
 
     // ---------- Spin logic ----------
@@ -429,19 +420,16 @@ Alan Turing"></textarea>
       const arc = (Math.PI * 2) / N;
       const targetIndex = Math.floor(Math.random() * N);
 
-      // Rotation that lands targetIndex at pointer angle (-90°)
       const pointerAngle = -Math.PI/2;
       const targetCenter = targetIndex * arc + arc/2;
-      let base = pointerAngle - targetCenter; // align center under pointer
-      // Ensure we spin forward at least 5–8 turns
-      const spins = 5 + Math.floor(Math.random()*4); // 5..8
+      let base = pointerAngle - targetCenter;
+      const spins = 5 + Math.floor(Math.random()*4);
       let end = base + spins * Math.PI * 2;
 
-      // Ensure end is > current rotation to avoid reverse jump
       while (end <= state.rotation + Math.PI*2) end += Math.PI*2;
 
       const start = state.rotation;
-      const duration = 4500; // ms
+      const duration = 4500;
       const t0 = performance.now();
 
       function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
@@ -454,7 +442,6 @@ Alan Turing"></textarea>
         if (t < 1){
           requestAnimationFrame(frame);
         } else {
-          // Normalize rotation and fix minor drift
           state.rotation = end;
           state.winnerIndex = targetIndex;
           drawWheel();
@@ -472,6 +459,7 @@ Alan Turing"></textarea>
       const box = $("#winner");
       box.innerHTML = `🎉 Winner: <strong>${escapeHtml(name)}</strong>`;
       box.classList.add("show");
+      launchConfetti();
     }
 
     function removeWinner(){
@@ -494,6 +482,58 @@ Alan Turing"></textarea>
       $("#winner").textContent = "";
     }
 
+    // ---------- Confetti ----------
+    function launchConfetti(){
+      if (confettiAnim) cancelAnimationFrame(confettiAnim);
+      const particles = [];
+      const rect = confetti.getBoundingClientRect();
+      const W = rect.width, H = rect.height;
+
+      const colors = ["#FF6B6B","#FFD93D","#6BCB77","#4D96FF","#B981FF","#FF8E3C"];
+      const count = 120;
+
+      for (let i=0; i<count; i++){
+        particles.push({
+          x: W/2 + (Math.random()*80 - 40),
+          y: -10,
+          vx: (Math.random()*6 - 3),
+          vy: (Math.random()*-8 - 6),
+          ay: 0.3 + Math.random()*0.15,
+          rot: Math.random()*Math.PI,
+          vr: (Math.random()*0.2 - 0.1),
+          size: 6 + Math.random()*6,
+          color: colors[i % colors.length],
+          life: 120 + Math.floor(Math.random()*40)
+        });
+      }
+
+      function step(){
+        cctx.clearRect(0,0,W,H);
+        let alive = 0;
+        for (const p of particles){
+          if (p.life <= 0) continue;
+          p.vy += p.ay;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.vr;
+          p.life--;
+
+          cctx.save();
+          cctx.translate(p.x, p.y);
+          cctx.rotate(p.rot);
+          cctx.fillStyle = p.color;
+          cctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+          cctx.restore();
+
+          if (p.y < H && p.life > 0) alive++;
+        }
+        if (alive > 0){
+          confettiAnim = requestAnimationFrame(step);
+        }
+      }
+      step();
+    }
+
     // ---------- Events ----------
     $("#loadCsvBtn").addEventListener("click", async () => {
       const url = $("#csvUrl").value.trim();
@@ -502,7 +542,7 @@ Alan Turing"></textarea>
         const csv = await fetchCsv(url);
         const names = parseNamesFromCsv(csv);
         if (!names.length) throw new Error("No names found in first column.");
-        setNames(names);
+        setNames(names, {hidePanel:true});
       }catch(err){
         console.error(err);
         alert("Couldn't load names. Make sure the sheet is published to the web as CSV and try again.");
@@ -511,14 +551,23 @@ Alan Turing"></textarea>
     $("#useTextareaBtn").addEventListener("click", () => {
       const names = parseNamesFromTextarea();
       if (!names.length) return alert("Type one name per line first.");
-      setNames(names);
+      setNames(names, {hidePanel:true});
     });
-    $("#spinBtn").addEventListener("click", spin);
+    $("#spinBtn").addEventListener("click", () => {
+      // Ensure canvas sized (sometimes first layout hasn't triggered observer yet)
+      resizeCanvas();
+      spin();
+    });
     $("#removeBtn").addEventListener("click", removeWinner);
     $("#resetBtn").addEventListener("click", resetWheel);
 
-    // Seed with textarea demo names initially
+    $("#toggleControlsBtn").addEventListener("click", () => {
+      $("#namesCard").classList.toggle("hidden");
+    });
+
+    // initial seed & sizing
     setNames(parseNamesFromTextarea());
+    resizeCanvas();
   </script>
 </body>
 </html>
