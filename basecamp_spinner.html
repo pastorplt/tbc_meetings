@@ -110,7 +110,7 @@
     .btn {
       display:inline-flex; align-items:center; justify-content:center;
       padding: 12px 16px; border-radius:10px; font-weight:800;
-      border:1px solid transparent; cursor:pointer; user-select:none;
+      border:1px solid transparent; cursor:pointer; user-select:none; white-space:nowrap;
       transition: transform .04s ease, background .2s ease, border-color .2s ease;
     }
     .btn:active { transform: translateY(1px) scale(.99); }
@@ -269,7 +269,7 @@ Alan Turing"></textarea>
       return await res.text();
     }
     function parseNamesFromCsv(csvText) {
-      const lines = csvText.split(/\\r?\\n/).map(l => l.trim()).filter(Boolean);
+      const lines = csvText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       const names = [];
       for (const line of lines) {
         const cell = line.split(",")[0].trim();
@@ -281,7 +281,7 @@ Alan Turing"></textarea>
     }
     function parseNamesFromTextarea() {
       const raw = $("#manualNames").value || "";
-      const names = raw.split(/\\r?\\n/).map(s => s.trim()).filter(Boolean);
+      const names = raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
       return dedupe(names);
     }
     function dedupe(arr){ return Array.from(new Set(arr)); }
@@ -301,9 +301,8 @@ Alan Turing"></textarea>
       if (!state.names.length) { box.innerHTML = '<span class="muted">No names loaded yet.</span>'; return; }
       box.innerHTML = state.names.map(n => `<span class="pill">${escapeHtml(n)}</span>`).join("");
     }
-    function escapeHtml(s){ 
-      return s.replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[m]));
-                                          }
+    function escapeHtml(s){
+      return s.replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
     }
 
     // ---------- Wheel drawing ----------
@@ -353,7 +352,7 @@ Alan Turing"></textarea>
           ctx.restore();
         }
 
-        // ---- Slice label ----
+        // Slice label
         const label = names[i];
         const mid = start + arc/2;
         const tx = Math.cos(mid) * (rOuter - 18);
@@ -557,7 +556,6 @@ Alan Turing"></textarea>
       setNames(names, {hidePanel:true});
     });
     $("#spinBtn").addEventListener("click", () => {
-      // Ensure canvas sized (sometimes first layout hasn't triggered observer yet)
       resizeCanvas();
       spin();
     });
